@@ -1,0 +1,47 @@
+// Code above remains unchanged until exportComprehensivePDF function
+
+  setTimeout(() => {
+    window.exportComprehensivePDF = async function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+
+      const projectName = document.getElementById("projectName").value || "Unnamed Project";
+      const logoUrl = "https://temacdesigns.com/assets/logo.png"; // Change to your actual logo path
+
+      // Add title page with logo and project details
+      const img = new Image();
+      img.src = logoUrl;
+      img.onload = async () => {
+        doc.addImage(img, 'PNG', 40, 40, 100, 100);
+        doc.setFontSize(22);
+        doc.text("TeMac Designs - Cabinet Project Report", 160, 80);
+        doc.setFontSize(14);
+        doc.text(`Client / Project Name: ${projectName}`, 160, 110);
+        doc.setFontSize(12);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 160, 130);
+        doc.addPage();
+
+        // Add summary table
+        doc.text("Panel Summary", 40, 40);
+        const summaryTable = document.querySelector("table");
+        await doc.html(summaryTable, { x: 40, y: 50, width: 700, html2canvas: { scale: 0.5 } });
+        doc.addPage();
+
+        // Add each cutting layout sheet
+        const sheets = document.querySelectorAll(".sheetCanvas");
+        for (let i = 0; i < sheets.length; i++) {
+          doc.text(`Sheet ${i + 1}`, 40, 40);
+          await doc.html(sheets[i], { x: 40, y: 50, width: 700, html2canvas: { scale: 0.5 } });
+          if (i < sheets.length - 1) doc.addPage();
+        }
+
+        // Add usage/wastage report
+        doc.addPage();
+        doc.text("Material Usage Report", 40, 40);
+        doc.text(`Total PLP Sheets Used: ${sheets.length}`, 40, 70);
+        doc.text(`Overall Material Wastage: ${overallWastage.toFixed(1)}%`, 40, 90);
+
+        doc.save("CabinetProjectFullReport.pdf");
+      };
+    };
+  }, 1000);
